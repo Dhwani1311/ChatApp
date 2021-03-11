@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 //import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_firebase/Home.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Auth',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyLoginPage(),
-    );
-  }
-}
+import 'package:shared_preferences/shared_preferences.dart';
+//
+// void main() => runApp(MyApp());
+//
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Flutter Auth',
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue,
+//       ),
+//       home: MyLoginPage(),
+//     );
+//   }
+// }
 
 class MyLoginPage extends StatefulWidget {
-  final String title;
-  MyLoginPage({Key key, this.title}) : super(key: key);
+  //final String title;
+  MyLoginPage({Key key,}) : super(key: key);
   @override
   _MyLoginPageState createState() => _MyLoginPageState();
 }
@@ -121,7 +123,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
                     if (_formKey.currentState.validate()) {
                       setState(() {
                         //autovalidate = true;
-                        _register();
+                        _login();
                       });
                     }
                     setState(() {
@@ -143,7 +145,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
     );
   }
 
-  void _register() async {
+  void _login() async {
     try {
       final newUser = await _auth.signInWithEmailAndPassword(
           email: _emailController.text, password: _passwordController.text);
@@ -152,24 +154,17 @@ class _MyLoginPageState extends State<MyLoginPage> {
         print('Successfully Login');
         Fluttertoast.showToast(
             msg: "Login Successfull",);
-              return;
-        //     toastLength: Toast.LENGTH_SHORT,
-        //     gravity: ToastGravity.CENTER,
-        //     timeInSecForIosWeb: 1,
-        //     backgroundColor: Colors.blueAccent,
-        //     textColor: Colors.white,
-        //     fontSize: 16.0);
-        // setState(() {
-        //   showProgress = false;
-        // });
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('name', newUser.user.displayName);
+        Navigator.push(context, MaterialPageRoute(builder: (context) => MyLogoutPage(name: 'Log Out Page',)));
       }
-    } catch (err) {
+    } catch (e) {
       showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text("Error"),
-              content: Text(err.message,),
+              content: Text(e.message,),
               actions: [
                 FlatButton(
                   child: Text("Ok"),

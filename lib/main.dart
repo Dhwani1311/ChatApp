@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_firebase/Home.dart';
 import 'package:flutter_firebase/forgot_password.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_firebase/login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-//import 'package:flutter_firebase/Home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:google_sign_in/google_sign_in.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  await SharedPreferences.getInstance().then((value){
+    prefs = value;
+    runApp(MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -38,18 +41,20 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+SharedPreferences prefs;
+
 class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn googleSignIn = GoogleSignIn();
+  //final GoogleSignIn googleSignIn = GoogleSignIn();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   RegExp regex = RegExp(
       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$');
   bool reg = false;
-  //bool _isLoggedIn = false;
   String email, password;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,10 +156,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     if (_formKey.currentState.validate()) {
                       setState(() {
                         _register();
+
                       });
                     }
                     setState(() {
                       reg = true;
+
                     });
                   },
                   minWidth: 200.0,
@@ -198,10 +205,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       MaterialPageRoute(builder: (_) => ForgotPassword()));
                 },
               ),
-              SizedBox(
-                height: 15,
-              ),
-          _signInButton(),
+          //     SizedBox(
+          //       height: 15,
+          //     ),
+          // _signInButton(),
             ],
           ),
         ),
@@ -210,22 +217,24 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   void _register() async {
     try {
-      final newuser = await _auth
+      await _auth
           .createUserWithEmailAndPassword(
               email: _emailController.text, password: _passwordController.text)
-          .then((newuser) {
+          .then((newuser) async {
         if (newuser.user.uid != null) {
           print(newuser.user.uid);
           print('Successfully registered.');
-           Fluttertoast.showToast(msg: "Successfully registered.");
+           //Fluttertoast.showToast(msg: "Successfully registered.");
            FirebaseFirestore.instance
               .collection("users")
               .doc(newuser.user.uid)
               .set({
             "uid": newuser.user.uid,
             "name": _nameController.text,
-
           });
+          prefs.setString('Uid', newuser.user.uid);
+          prefs.setString('Name', _nameController.text);
+          Navigator.push(context, MaterialPageRoute(builder: (context) => MyLogoutPage(name: 'Log Out Page',)));
         }
       });
     } catch (e) {
@@ -247,67 +256,67 @@ class _MyHomePageState extends State<MyHomePage> {
           });
     }
   }
-  Widget _signInButton() {
-    return OutlineButton(
-      splashColor: Colors.grey,
-      onPressed: () {
-        signInWithGoogle().whenComplete(() {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) {
-                return LogOut();
-              },
-            ),
-          );
-        });
-      },
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
-      highlightElevation: 0,
-      borderSide: BorderSide(color: Colors.grey),
-      child: Padding(
-        padding:  EdgeInsets.fromLTRB(0, 10, 0, 10),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.only(left: 10),
-              child: Text(
-                'Sign in with Google',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.grey,
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-  Future<String> signInWithGoogle() async {
-    final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
-    final GoogleSignInAuthentication googleSignInAuthentication =
-    await googleSignInAccount.authentication;
-
-    final GoogleAuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: googleSignInAuthentication.accessToken,
-      idToken: googleSignInAuthentication.idToken,
-    );
-
-    final authResult = await _auth.signInWithCredential(credential);
-    final User user = authResult.user;
-
-    assert(!user.isAnonymous);
-    assert(await user.getIdToken() != null);
-
-    final User currentUser = _auth.currentUser;
-    assert(user.uid == currentUser.uid);
-
-    return 'signInWithGoogle succeeded: $user';
-  }
-  void signOutGoogle() async{
-    await googleSignIn.signOut();
-    print("User Sign Out");
-  }
+  // Widget _signInButton() {
+  //   return OutlineButton(
+  //     splashColor: Colors.grey,
+  //     onPressed: () {
+  //       signInWithGoogle().whenComplete(() {
+  //         Navigator.of(context).push(
+  //           MaterialPageRoute(
+  //             builder: (context) {
+  //               return LogOut();
+  //             },
+  //           ),
+  //         );
+  //       });
+  //     },
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+  //     highlightElevation: 0,
+  //     borderSide: BorderSide(color: Colors.grey),
+  //     child: Padding(
+  //       padding:  EdgeInsets.fromLTRB(0, 10, 0, 10),
+  //       child: Row(
+  //         mainAxisSize: MainAxisSize.min,
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: <Widget>[
+  //           Padding(
+  //             padding: EdgeInsets.only(left: 10),
+  //             child: Text(
+  //               'Sign in with Google',
+  //               style: TextStyle(
+  //                 fontSize: 20,
+  //                 color: Colors.grey,
+  //               ),
+  //             ),
+  //           )
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+  // Future<String> signInWithGoogle() async {
+  //   final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
+  //   final GoogleSignInAuthentication googleSignInAuthentication =
+  //   await googleSignInAccount.authentication;
+  //
+  //   final GoogleAuthCredential credential = GoogleAuthProvider.credential(
+  //     accessToken: googleSignInAuthentication.accessToken,
+  //     idToken: googleSignInAuthentication.idToken,
+  //   );
+  //
+  //   final authResult = await _auth.signInWithCredential(credential);
+  //   final User user = authResult.user;
+  //
+  //   assert(!user.isAnonymous);
+  //   assert(await user.getIdToken() != null);
+  //
+  //   final User currentUser = _auth.currentUser;
+  //   assert(user.uid == currentUser.uid);
+  //
+  //   return 'signInWithGoogle succeeded: $user';
+  // }
+  // void signOutGoogle() async{
+  //   await googleSignIn.signOut();
+  //   print("User Sign Out");
+  // }
 }

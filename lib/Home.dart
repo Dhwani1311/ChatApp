@@ -1,24 +1,10 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
 
-void main() => runApp(LogOut());
-
-class LogOut extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Auth',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyLogoutPage(),
-    );
-  }
-}
-
 class MyLogoutPage extends StatefulWidget {
-  final String title;
-  MyLogoutPage({Key key, this.title}) : super(key: key);
+  //final String title;
+  final String name;
+  MyLogoutPage({Key key,this.name}) : super(key: key);
   @override
   _MyLogoutPageState createState() => _MyLogoutPageState();
 }
@@ -30,18 +16,29 @@ class _MyLogoutPageState extends State<MyLogoutPage> {
     return Scaffold(
       appBar: AppBar(
         title: Center(child: Text("Logout")),
+        actions: <Widget>[
+          FlatButton(
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyApp()),
+              );
+            },
+            child: Text("Logout"),
+            shape: CircleBorder(side: BorderSide(color: Colors.transparent)),
+          ),
+        ],
       ),
-      body: Center(
-        child:
-      OutlineButton(
-    child: Text("Logout"),
-        onPressed: () {
-          //signOutGoogle();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => MyApp()),
-          );
-        },
+      body: Center(  child: Text(
+                "Welcome ${prefs.getString('Name')}!",
+                style: TextStyle(
+                  fontSize: 25,
+                ),
+              ),
+            ),);
+  }
+}
           // child: _isLoggedIn
           //     ? Column(
           //   mainAxisAlignment: MainAxisAlignment.center,
@@ -53,9 +50,7 @@ class _MyLogoutPageState extends State<MyLogoutPage> {
           //     },)
           //   ],
           // )
-          ),
-    ),);
-  }
+
   //
   // logout(){
   //   _googleSignIn.signOut();
@@ -67,7 +62,7 @@ class _MyLogoutPageState extends State<MyLogoutPage> {
   //     );
   //   });
   // }
-}
+
       // body: Container(
       //   child: Padding(
       //     padding: const EdgeInsets.all(48.0),
