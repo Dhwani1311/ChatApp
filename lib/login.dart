@@ -4,6 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_firebase/Home.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_firebase/UI/homepage.dart';
+
+import 'main_screen.dart';
 //
 // void main() => runApp(MyApp());
 //
@@ -22,7 +25,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class MyLoginPage extends StatefulWidget {
   //final String title;
-  MyLoginPage({Key key,}) : super(key: key);
+  MyLoginPage({
+    Key key,
+  }) : super(key: key);
   @override
   _MyLoginPageState createState() => _MyLoginPageState();
 }
@@ -61,17 +66,17 @@ class _MyLoginPageState extends State<MyLoginPage> {
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: TextFormField(
-                 controller: _emailController,
+                  controller: _emailController,
                   textAlign: TextAlign.center,
                   // onChanged: (value) {
                   //   email = value; // get value from TextField
                   // },
                   decoration: InputDecoration(
-                    labelText: "Email",
+                      labelText: "Email",
                       hintText: "Enter your Email",
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                              Radius.circular(30.0)))),
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(30.0)))),
                   validator: (String value) {
                     if (!regex.hasMatch(value)) {
                       return 'Please enter valid email id';
@@ -93,11 +98,11 @@ class _MyLoginPageState extends State<MyLoginPage> {
                   //   password = value; //get value from textField
                   // },
                   decoration: InputDecoration(
-                    labelText: "Password",
+                      labelText: "Password",
                       hintText: "Enter your Password",
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                              Radius.circular(32.0)))),
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(32.0)))),
                   validator: (value) {
                     if (value.isEmpty) {
                       return "Please enter the password";
@@ -108,7 +113,6 @@ class _MyLoginPageState extends State<MyLoginPage> {
                     } else
                       return null;
                   },
-
                 ),
               ),
               SizedBox(
@@ -133,7 +137,9 @@ class _MyLoginPageState extends State<MyLoginPage> {
                   minWidth: 200.0,
                   height: 45.0,
                   child: Text(
-                    "Login", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20.0),
+                    "Login",
+                    style:
+                        TextStyle(fontWeight: FontWeight.w500, fontSize: 20.0),
                   ),
                 ),
               )
@@ -153,10 +159,11 @@ class _MyLoginPageState extends State<MyLoginPage> {
       if (newUser != null) {
         print('Successfully Login');
         Fluttertoast.showToast(
-            msg: "Login Successfull",);
+          msg: "Login Successfull",
+        );
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('name', newUser.user.displayName);
-        Navigator.push(context, MaterialPageRoute(builder: (context) => MyLogoutPage(name: 'Log Out Page',)));
+        Navigator.pushReplacementNamed(context, '/homepage');
       }
     } catch (e) {
       showDialog(
@@ -164,7 +171,9 @@ class _MyLoginPageState extends State<MyLoginPage> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text("Error"),
-              content: Text(e.message,),
+              content: Text(
+                e.message,
+              ),
               actions: [
                 FlatButton(
                   child: Text("Ok"),

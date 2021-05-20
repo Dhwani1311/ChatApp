@@ -8,29 +8,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_firebase/Firebase/firebase.dart';
 import 'package:flutter_firebase/model/User.dart';
 import 'package:flutter_firebase/model/message.dart';
-
 import '../Utils.dart';
 import 'chat_body.dart';
 
-class ChatsPage extends StatefulWidget {
-  ChatsPage({
+class ChatListPage extends StatefulWidget {
+  ChatListPage({
     Key key,
   }) : super(key: key);
 
   //final store = FirebaseFirestore.instance.collection('users');
   @override
-  _ChatsPageState createState() => _ChatsPageState();
+  _ChatListPageState createState() => _ChatListPageState();
 }
 
-class _ChatsPageState extends State<ChatsPage>
+class _ChatListPageState extends State<ChatListPage>
     with SingleTickerProviderStateMixin {
- 
-  String idUser;
+  bool _signedIn = false;
+  FirebaseAuth _auth = FirebaseAuth.instance;
+  // TabController _controller;
+  //int _selectedIndex = 0;
 
+  // @override
+  // void initState() {
+  //   //_controller = TabController(length: 2, vsync: this);
+  //   super.initState();
+  //   FirebaseAuth.instance.authStateChanges().listen((user) {
+  //     if (user is User) {
+  //       _signedIn = true;
+  //     } else {
+  //       _signedIn = false;
+  //     }
+  //     setState(() {});
+  //   });
+  // }
+
+  // Future _signOut() async {
+  //   await FirebaseAuth.instance.signOut();
+  //   // setState(() {
+  //   //   _signedIn = false;
+  //   // });
+  // }
 
   @override
   Widget build(BuildContext context) => StreamBuilder<List<UserModel>>(
-        stream: FirebaseApi.getUsers(idUser),
+        stream: FirebaseApi.getChatList(),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
@@ -50,5 +71,4 @@ class _ChatsPageState extends State<ChatsPage>
           }
         },
       );
-      
 }
