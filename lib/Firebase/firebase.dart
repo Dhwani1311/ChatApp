@@ -1,69 +1,45 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_firebase/main_screen.dart';
-//import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:firebase_chat_example/data.dart';
-// import 'package:firebase_chat_example/model/message.dart';
-// import 'package:firebase_chat_example/model/user.dart';
+//import 'package:flutter/material.dart';
 import 'package:flutter_firebase/model/User.dart';
 import 'package:flutter_firebase/model/message.dart';
-
+import '../main_screen.dart';
 import '../mydata.dart';
-import '../utils.dart';
 
 class FirebaseApi {
-  static Stream<List<UserModel>> getUsers(String idUser) {
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getUsers() {
     return FirebaseFirestore.instance
         .collection('users')
         .orderBy(UserField.lastMessageTime, descending: true)
-        .snapshots()
-        .transform(Utils.transformer(UserModel.fromJson));
+        .snapshots();
   }
 
-  static Stream<List<UserModel>> getChatList() => FirebaseFirestore.instance
-      .collection('chatList')
-      .orderBy(UserField.lastMessageTime, descending: true)
-      .snapshots()
-      .transform(Utils.transformer(UserModel.fromJson));
-
-  static Future uploadMessage(String idUser, String message) async {
-    UserModel userModel;
-    final refMessages =
-        FirebaseFirestore.instance.collection('chats/$idUser/messages');
-    //final user = FirebaseAuth.instance.currentUser;
-    final newMessage = Message(
-      idUser: myId,
-      urlAvatar: myUrlAvatar,
-      username: myUsername,
-      message: message,
-      createdAt: DateTime.now(),
-    );
-    await refMessages.add(newMessage.toJson());
-
-    final refUsers = FirebaseFirestore.instance.collection('chatList');
-    await refUsers.doc(idUser).set({
-      'idUser': idUser,
-      'name': userModel.name ?? 'TestUser',
-      'urlAvatar': 'https://homepages.cae.wisc.edu/~ece533/images/cat.png',
-      'lastMessageTime': DateTime.now()
-    });
-    //.set({UserField.lastMessageTime.toString(): DateTime.now()});
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getChatList() {
+    return FirebaseFirestore.instance
+        .collection('chatList')
+        .doc(prefs.getString('Uid'))
+        .collection(prefs.getString('Uid'))
+        .orderBy(UserField.lastMessageTime, descending: true)
+        .snapshots();
+    // .transform(Utils.transformer(UserModel.fromJson));
   }
 
-  static Future deleteMessage(String idUser, String groupchatId) async {
+  static Future deleteMessage(String groupchatId, String idUser) async {
     final refMessages = FirebaseFirestore.instance
         .collection('messages2/$groupchatId/$groupchatId');
 
     await refMessages.doc(idUser).delete();
-
-    // final refUsers = FirebaseFirestore.instance.collection('user');
-    // await refUsers
-    //     .doc(idUser)
-    //     .set({UserField.lastMessageTime.toString(): DateTime.now()});
   }
 
-  static Future uploadgrpMessage(
-      String groupchatId, String message, String idUser, String name) async {
+  // static Future<void> deleteProduct(
+  //     String groupchatId, DocumentSnapshot doc) async {
+  //   await FirebaseFirestore.instance
+  //       .collection('messages2/$groupchatId/$groupchatId')
+  //       .doc(doc.id)
+  //       .delete();
+  // }
+
+  static Future uploadMessage(String groupchatId, String message, String idUser,
+      String name, String devicetoken) async {
     if (myId.hashCode <= idUser.hashCode) {
       groupchatId = '$myId-$idUser';
     } else {
@@ -74,6 +50,7 @@ class FirebaseApi {
         .collection('messages2/$groupchatId/$groupchatId');
     //UserModel user;
     //final user = FirebaseAuth.instance.currentUser;
+
     final newMessage = Message(
       idUser: myId,
       urlAvatar: myUrlAvatar,
@@ -84,38 +61,57 @@ class FirebaseApi {
 
     await refMessages.add(newMessage.toJson());
 
-    final refUsers = FirebaseFirestore.instance.collection('chatList');
-    await refUsers.doc(idUser).set({
-      'idUser': idUser,
-      'name': name,
-      'urlAvatar': 'https://homepages.cae.wisc.edu/~ece533/images/cat.png',
-      'lastMessageTime': DateTime.now()
-    });
+    // final data1 = await FirebaseFirestore.instance
+    //     .collection('messages2')
+    //     .doc(groupchatId)
+    //     .collection(groupchatId)
+    //     .where('idUser', isEqualTo: myId)
+    //     .orderBy('createdAt', descending: true)
+    //     .limit(1)
+    //     .get();
+    // print(data1.docs);
 
-    // FirebaseFirestore.instance
-    //     .collection('users')
-    //     .doc(myId)
-    //     .update({'chattingWith': idUser});
+    final refUsers = FirebaseFirestore.instance
+        .collection('chatList')
+        .doc(myId)
+        .collection(myId);
 
-    // final refUsers = FirebaseFirestore.instance.collection('chatList');
-    // await refUsers.doc(groupchatId).set({
-    //   'idUser': myId,
-    //   'name': prefs.getString('Name') ?? 'TestUser',
+    final chatlist = UserModel(
+        idUser: idUser,
+        name: name,
+        lastmsg: message,
+        devicetoken: devicetoken,
+        urlAvatar: 'https://homepages.cae.wisc.edu/~ece533/images/cat.png',
+        lastMessageTime: DateTime.now());
+
+    await refUsers.doc(idUser).set(chatlist.toJson());
+
+    final refUsers2 = FirebaseFirestore.instance
+        .collection('chatList')
+        .doc(idUser)
+        .collection(idUser);
+
+    final chatlist2 = UserModel(
+        idUser: myId,
+        name: myUsername,
+        lastmsg: message,
+        devicetoken: prefs.getString('devicetoken'),
+        urlAvatar: 'https://homepages.cae.wisc.edu/~ece533/images/cat.png',
+        lastMessageTime: DateTime.now());
+
+    await refUsers2.doc(myId).set(chatlist2.toJson());
+
+    // await refUsers.doc(idUser).set({
+    //   'idUser': idUser,
+    //   'name': name,
+    //   'devicetoken': token,
     //   'urlAvatar': 'https://homepages.cae.wisc.edu/~ece533/images/cat.png',
     //   'lastMessageTime': DateTime.now()
     // });
-    // //.set({UserField.lastMessageTime.toString(): DateTime.now()});
   }
 
-  static Stream<List<Message>> getMessages(String idUser) {
-    return FirebaseFirestore.instance
-        .collection('chats/$idUser/messages')
-        .orderBy(MessageField.createdAt, descending: true)
-        .snapshots()
-        .transform(Utils.transformer(Message.fromJson));
-  }
-
-  static Stream<List<Message>> getGroupId(String groupchatId, String idUser) {
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getGroupId(
+      String groupchatId, String idUser) {
     if (myId.hashCode <= idUser.hashCode) {
       groupchatId = '$myId-$idUser';
     } else {
@@ -124,23 +120,7 @@ class FirebaseApi {
     return FirebaseFirestore.instance
         .collection('messages2/$groupchatId/$groupchatId')
         .orderBy(MessageField.createdAt, descending: true)
-        .snapshots()
-        .transform(Utils.transformer(Message.fromJson));
-  }
-
-  static Future addRandomUsers(List<UserModel> users) async {
-    final refUsers = FirebaseFirestore.instance.collection('users');
-
-    final allUsers = await refUsers.get();
-    if (allUsers.size != 0) {
-      return;
-    } else {
-      for (final user in users) {
-        final userDoc = refUsers.doc();
-        final newUser = user.copyWith(idUser: userDoc.id);
-
-        await userDoc.set(newUser.toJson());
-      }
-    }
+        .snapshots();
+    // .transform(Utils.transformer(Message.fromJson));
   }
 }

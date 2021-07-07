@@ -1,33 +1,14 @@
+//import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-//import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_firebase/Home.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_firebase/UI/homepage.dart';
-
-import 'main_screen.dart';
-//
-// void main() => runApp(MyApp());
-//
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Flutter Auth',
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       home: MyLoginPage(),
-//     );
-//   }
-// }
+import 'package:flutter_firebase/main_screen.dart';
+//import 'package:flutter_firebase/mydata.dart';
+// import 'main_screen.dart';
+//import 'package:flutter_firebase/main_screen.dart';
 
 class MyLoginPage extends StatefulWidget {
-  //final String title;
-  MyLoginPage({
-    Key key,
-  }) : super(key: key);
+  MyLoginPage();
   @override
   _MyLoginPageState createState() => _MyLoginPageState();
 }
@@ -40,6 +21,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
 
   bool showProgress = false;
   //String email, password;
+
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
@@ -155,14 +137,22 @@ class _MyLoginPageState extends State<MyLoginPage> {
     try {
       final newUser = await _auth.signInWithEmailAndPassword(
           email: _emailController.text, password: _passwordController.text);
-      print(newUser.toString());
+      print(newUser.user.uid);
       if (newUser != null) {
         print('Successfully Login');
-        Fluttertoast.showToast(
-          msg: "Login Successfull",
-        );
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString('name', newUser.user.displayName);
+
+        final data = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(newUser.user.uid)
+            .get();
+
+        prefs.setString('Name', data.data()['name']);
+
+        //print(prefs.getString('Name'));
+        prefs?.setBool("isLoggedIn", true);
+        prefs.setString('Uid', newUser.user.uid);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Login Successfull')));
         Navigator.pushReplacementNamed(context, '/homepage');
       }
     } catch (e) {
@@ -175,7 +165,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
                 e.message,
               ),
               actions: [
-                FlatButton(
+                TextButton(
                   child: Text("Ok"),
                   onPressed: () {
                     Navigator.of(context).pop();

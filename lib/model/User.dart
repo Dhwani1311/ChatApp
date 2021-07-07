@@ -1,5 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter_firebase/main_screen.dart';
 
 import '../utils.dart';
 
@@ -7,43 +6,51 @@ class UserField {
   static final String lastMessageTime = 'lastMessageTime';
 }
 
+// class UserModel {
+//   List<UserModelSub> userList = [];
+
+//   UserModel({this.userList});
+
+//   UserModel.fromJson(List<QueryDocumentSnapshot<Map<String, dynamic>>> json) {
+//     userList = <UserModelSub>[];
+//     json.forEach((user) {
+//       userList.add(UserModelSub.fromJson(user.data()));
+//     });
+//   }
+// }
+
 class UserModel {
   final String idUser;
   final String name;
   final String urlAvatar;
+  final String devicetoken;
+  final String lastmsg;
   final DateTime lastMessageTime;
 
-  const UserModel({
+  UserModel({
     this.idUser,
-    @required this.name,
-    @required this.urlAvatar,
-    @required this.lastMessageTime,
+    this.name,
+    this.urlAvatar,
+    this.devicetoken,
+    this.lastmsg,
+    this.lastMessageTime,
   });
 
-  UserModel copyWith({
-    String idUser,
-    String name,
-    String urlAvatar,
-    String lastMessageTime,
-  }) =>
-      UserModel(
-        idUser: idUser ?? this.idUser,
-        name: name ?? this.name,
-        urlAvatar: urlAvatar ?? this.urlAvatar,
-        lastMessageTime: lastMessageTime ?? this.lastMessageTime,
+  static UserModel fromJson(Map<String, dynamic> json) => UserModel(
+        idUser: json['idUser'],
+        name: json['name'],
+        urlAvatar: json['urlAvatar'],
+        devicetoken: json['devicetoken'],
+        lastmsg: json['lastmsg'],
+        lastMessageTime: Utils.toDateTime(json['lastMessageTime']),
       );
 
-  static UserModel fromJson(Map<String, dynamic> json) => UserModel(
-    idUser: json['idUser'],
-    name: json['name'],
-    urlAvatar: json['urlAvatar'],
-    lastMessageTime: Utils.toDateTime(json['lastMessageTime']),
-  );
-
   Map<String, dynamic> toJson() => {
-    'idUser': idUser,
-    'name': name,
-    'urlAvatar': urlAvatar,
-    'lastMessageTime': Utils.fromDateTimeToJson(lastMessageTime),
-  };
+        'idUser': idUser,
+        'name': name,
+        'urlAvatar': urlAvatar,
+        'devicetoken': prefs.getString('devicetoken'),
+        'lastmsg': lastmsg,
+        'lastMessageTime': Utils.fromDateTimeToJson(lastMessageTime),
+      };
 }

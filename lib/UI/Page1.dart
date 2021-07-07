@@ -1,23 +1,17 @@
-//import 'package:firebase_chat_example/model/user.dart';
-// import 'package:firebase_chat_example/widget/messages_widget.dart';
-// import 'package:firebase_chat_example/widget/new_message_widget.dart';
-// import 'package:firebase_chat_example/widget/profile_header_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase/UI/profile.dart';
 import 'package:flutter_firebase/model/User.dart';
 import 'package:flutter_firebase/UI/chat_screen.dart';
+//import 'package:flutter_firebase/model/message.dart';
+import '../mydata.dart';
 import 'chat_screen.dart';
-import 'msg2.dart';
 import 'new_msg.dart';
 
 class ChatPage extends StatefulWidget {
   final UserModel user;
 
-  const ChatPage({
-    @required this.user,
-    Key key,
-  }) : super(key: key);
+  ChatPage({this.user});
 
   @override
   _ChatPageState createState() => _ChatPageState();
@@ -25,13 +19,27 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   @override
+  void initState() {
+    FirebaseFirestore.instance
+        .collection('active')
+        .doc(myId)
+        .collection(myId)
+        .doc(widget.user.idUser)
+        .set({'idUser': widget.user.idUser, 'name': widget.user.name});
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) => Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: Colors.blue,
         body: SafeArea(
           child: Column(
             children: [
-              ProfileHeaderWidget(name: widget.user.name),
+              ProfileHeaderWidget(
+                name: widget.user.name,
+                idUser: widget.user.idUser,
+              ),
               Expanded(
                 child: Container(
                   padding: EdgeInsets.all(10),
@@ -42,6 +50,7 @@ class _ChatPageState extends State<ChatPage> {
                       topRight: Radius.circular(25),
                     ),
                   ),
+
                   // child: MessagesWidget(
                   //   idUser: widget.user.idUser,
                   // ),
@@ -49,7 +58,10 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
               NewMessageWidget(
-                  idUser: widget.user.idUser, name: widget.user.name),
+                idUser: widget.user.idUser,
+                name: widget.user.name,
+                devicetoken: widget.user.devicetoken,
+              ),
             ],
           ),
         ),

@@ -1,22 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+//import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase/Firebase/firebase.dart';
 import 'package:flutter_firebase/UI/msg.dart';
-import 'package:flutter_firebase/main_screen.dart';
-import 'package:flutter_firebase/model/User.dart';
 import 'package:flutter_firebase/model/message.dart';
-
 import '../mydata.dart';
 
 class ChatScreen extends StatefulWidget {
   final String idUser;
-  //final ValueChanged<String> onDelete;
 
-  const ChatScreen({
-    @required this.idUser,
-    Key key,
-    //this.onDelete
-  }) : super(key: key);
+  ChatScreen({this.idUser});
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -26,41 +19,49 @@ class _HomePageState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return buildListMessage();
-  }
-
-  Widget buildListMessage() {
-    return StreamBuilder<List<Message>>(
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseApi.getGroupId(groupchatId, widget.idUser),
         builder: (context, snapshots) {
           switch (snapshots.connectionState) {
             case ConnectionState.waiting:
               return Center(child: CircularProgressIndicator());
             default:
-              if (snapshots.hasError) {
-                return buildText('Something Went Wrong Try later');
+              if (!snapshots.hasData) {
+                return Center(child: Text('Something Went Wrong Try later'));
               } else {
-                final messages = snapshots.data;
+                final List<Message> messages = snapshots.data.docs
+                    .map((e) => Message.fromJson(e.data()))
+                    .toList();
 
                 return messages.isEmpty
-                    ? buildText('No message')
+                    ? Center(
+                        child: Text(
+                          'No message',
+                          style: TextStyle(fontSize: 24),
+                        ),
+                      )
                     : ListView.builder(
                         physics: BouncingScrollPhysics(),
                         reverse: true,
                         itemCount: messages.length,
                         itemBuilder: (context, index) {
                           final message = messages[index];
-
-                          return Dismissible(
-                              onDismissed: (_) {
-                                FirebaseApi.deleteMessage(
-                                    groupchatId, message.idUser);
-                              },
-                              key: ValueKey(messages[index].idUser),
-                              child: MessageWidget(
-                                message: message,
-                                isMe: message.idUser == myId,
-                              ));
+                          return
+                              // Dismissible(
+                              //     onDismissed: (_) {
+                              //       FirebaseApi.deleteMessage(
+                              //           groupchatId, message.idUser);
+                              //     },
+                              //     key: ValueKey(message.idUser),
+                              //     child:
+                              MessageWidget(
+                            message: message,
+                            isMe: message.idUser == myId,
+                            isPreviousAreSame: index == (messages.length - 1)
+                                ? false
+                                : messages[index].idUser ==
+                                    messages[index + 1].idUser,
+                          );
                         },
                       );
               }
@@ -68,10 +69,13 @@ class _HomePageState extends State<ChatScreen> {
         });
   }
 
-  Widget buildText(String text) => Center(
-        child: Text(
-          text,
-          style: TextStyle(fontSize: 24),
-        ),
-      );
+//   Widget buildListMessage() {
+
+//   }
+//   // Widget buildText(String text) => Center(
+//   //       child: Text(
+//   //         text,
+//   //         style: TextStyle(fontSize: 24),
+//   //       ),
+//   //     );
 }
